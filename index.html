@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full dark bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerPoint Figure Blueprint Generator</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Mermaid JS for Rendering Scientific Diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <!-- PptxGenJS for Editable PowerPoint Generation -->
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(226, 232, 240, 0.6);
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.8);
+            border-radius: 4px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 4px;
+        }
+        .mermaid-container svg {
+            max-width: 100% !important;
+            height: auto !important;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 antialiased overflow-x-hidden transition-colors duration-200">
+
+    <!-- Header Navbar -->
+    <header class="border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-30 px-4 lg:px-8 py-3.5 flex items-center justify-between transition-colors duration-200">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                <i class="fa-solid fa-diagram-project text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg text-slate-900 dark:text-white leading-tight flex items-center gap-2">
+                    PowerPoint Figure Blueprints
+                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">AI Visual Studio</span>
+                </h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Transform research papers & concepts into native, editable presentation diagrams</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2.5">
+            <!-- Theme Mode Toggle Button -->
+            <button id="themeToggleBtn" onclick="toggleTheme()" class="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-lg transition" title="Toggle Light/Dark Mode">
+                <i id="themeToggleIcon" class="fa-solid fa-moon text-indigo-400"></i>
+                <span id="themeToggleText">Dark Mode</span>
+            </button>
+
+            <button onclick="loadPresetSample()" class="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-lg transition">
+                <i class="fa-solid fa-lightbulb text-amber-500 dark:text-amber-400"></i>
+                <span>Load Sample</span>
+            </button>
+            
+            <button onclick="openApiKeyModal()" class="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-lg transition">
+                <i class="fa-solid fa-key text-blue-500 dark:text-blue-400"></i>
+                <span id="apiKeyBtnText">API Settings</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left Column: Input & Controls (5 Cols) -->
+        <section class="lg:col-span-5 bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-5 sticky lg:top-20 transition-colors duration-200">
+            
+            <!-- Input Tabs Selector -->
+            <div>
+                <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 block">Source Material Input</label>
+                <div class="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                    <button id="tab-text" onclick="switchTab('text')" class="tab-btn px-3 py-2 text-xs font-medium rounded-lg transition bg-blue-600 text-white shadow-sm flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-align-left"></i> Text
+                    </button>
+                    <button id="tab-doc" onclick="switchTab('doc')" class="tab-btn px-3 py-2 text-xs font-medium rounded-lg transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-file-contract"></i> Article
+                    </button>
+                    <button id="tab-image" onclick="switchTab('image')" class="tab-btn px-3 py-2 text-xs font-medium rounded-lg transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-image"></i> Diagram
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Content 1: Direct Text Input -->
+            <div id="content-text" class="tab-content flex flex-col gap-2">
+                <div class="flex items-center justify-between">
+                    <label for="articleInput" class="text-xs font-medium text-slate-700 dark:text-slate-300">Abstract or Scientific Notes</label>
+                    <button onclick="rephraseArticleText()" class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 flex items-center gap-1 transition">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span id="rephraseBtnText">Re-phrase & Polish</span>
+                    </button>
+                </div>
+                <textarea id="articleInput" rows="7" placeholder="Paste scientific paper abstract, technical process description, or structural mechanics here..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-3 text-xs text-slate-900 dark:text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 custom-scrollbar resize-none"></textarea>
+            </div>
+
+            <!-- Tab Content 2: Document Article Input -->
+            <div id="content-doc" class="tab-content hidden flex flex-col gap-2">
+                <div class="flex items-center justify-between">
+                    <label for="articleInputDoc" class="text-xs font-medium text-slate-700 dark:text-slate-300">Full Paper / Manuscript Text</label>
+                    <button onclick="rephraseArticleText()" class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 flex items-center gap-1 transition">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Re-phrase & Summarize</span>
+                    </button>
+                </div>
+                <div id="docDropZone" onclick="document.getElementById('docFileInput').click()" class="border border-dashed border-slate-300 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-500/50 bg-slate-50/60 dark:bg-slate-950/60 rounded-xl p-3 text-center cursor-pointer transition flex flex-col items-center justify-center gap-1.5 group">
+                    <input type="file" id="docFileInput" accept=".docx,.txt,.md" class="hidden" onchange="handleDocUpload(event)">
+                    <div id="docUploadPlaceholder" class="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition">
+                        <i class="fa-solid fa-file-word text-xl text-blue-500 dark:text-blue-400"></i>
+                        <span class="text-xs font-medium">Click to upload .DOCX, .TXT, or .MD document</span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500">Automatically extracts manuscript text</span>
+                    </div>
+                    <div id="docFileInfo" class="hidden text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 font-medium">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span id="docFileName" class="truncate max-w-[200px]">document.docx</span>
+                        <button onclick="removeUploadedDoc(event)" class="text-slate-400 hover:text-red-500 ml-2 p-1">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+                <textarea id="articleInputDoc" rows="5" placeholder="Document contents will appear here after upload, or you can paste manuscript text manually..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-3 text-xs text-slate-900 dark:text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 custom-scrollbar resize-none"></textarea>
+            </div>
+
+            <!-- Tab Content 3: Image / Existing Diagram Analysis -->
+            <div id="content-image" class="tab-content hidden flex flex-col gap-3">
+                <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Upload Reference Image or Rough Sketch</label>
+                <div id="dropZone" onclick="document.getElementById('imageFileInput').click()" class="border-2 border-dashed border-slate-300 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-500/50 bg-slate-50/60 dark:bg-slate-950/60 rounded-xl p-4 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2 group">
+                    <input type="file" id="imageFileInput" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                    <div id="uploadPlaceholder" class="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition">
+                        <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                        <span class="text-xs font-medium">Click to select image or drag & drop</span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500">PNG, JPG, WEBP up to 10MB</span>
+                    </div>
+                    <div id="imagePreviewContainer" class="hidden relative w-full flex flex-col items-center">
+                        <img id="imagePreview" class="max-h-36 rounded-lg border border-slate-300 dark:border-slate-700 object-contain shadow-md" alt="Uploaded Diagram">
+                        <button onclick="removeUploadedImage(event)" class="absolute top-1 right-1 bg-red-600/90 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-500 transition shadow">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label for="imageContextInput" class="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 block">Context or Instructions (Optional)</label>
+                    <input type="text" id="imageContextInput" placeholder="e.g., Extract key flowchart components into a PowerPoint slide format..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg p-2.5 text-xs text-slate-900 dark:text-slate-200 focus:outline-none focus:border-blue-500">
+                </div>
+            </div>
+
+            <!-- Diagram Style / Theme Picker -->
+            <div>
+                <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 block">Mermaid Visual Theme</label>
+                <div class="grid grid-cols-4 gap-2">
+                    <label class="cursor-pointer border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 rounded-lg p-2 flex flex-col items-center text-center hover:border-blue-500/50 transition">
+                        <input type="radio" name="theme" value="default" checked class="sr-only peer">
+                        <span class="w-3 h-3 rounded-full bg-blue-500 mb-1 ring-2 ring-transparent peer-checked:ring-blue-400"></span>
+                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300 peer-checked:text-blue-500 dark:peer-checked:text-blue-400">Default</span>
+                    </label>
+                    <label class="cursor-pointer border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 rounded-lg p-2 flex flex-col items-center text-center hover:border-blue-500/50 transition">
+                        <input type="radio" name="theme" value="dark" class="sr-only peer">
+                        <span class="w-3 h-3 rounded-full bg-indigo-500 mb-1 ring-2 ring-transparent peer-checked:ring-indigo-400"></span>
+                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300 peer-checked:text-indigo-500 dark:peer-checked:text-indigo-400">Dark</span>
+                    </label>
+                    <label class="cursor-pointer border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 rounded-lg p-2 flex flex-col items-center text-center hover:border-blue-500/50 transition">
+                        <input type="radio" name="theme" value="forest" class="sr-only peer">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500 mb-1 ring-2 ring-transparent peer-checked:ring-emerald-400"></span>
+                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300 peer-checked:text-emerald-500 dark:peer-checked:text-emerald-400">Forest</span>
+                    </label>
+                    <label class="cursor-pointer border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 rounded-lg p-2 flex flex-col items-center text-center hover:border-blue-500/50 transition">
+                        <input type="radio" name="theme" value="neutral" class="sr-only peer">
+                        <span class="w-3 h-3 rounded-full bg-slate-400 mb-1 ring-2 ring-transparent peer-checked:ring-slate-300"></span>
+                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300 peer-checked:text-slate-900 dark:peer-checked:text-slate-200">Neutral</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Diagram Orientation Control -->
+            <div>
+                <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 block">Diagram Orientation</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <label class="cursor-pointer border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 rounded-lg p-2 flex flex-col items-center text-center hover:border-blue-500/50 transition">
+                        <input type="radio" name="orientation" value="auto" checked class="sr-only peer">
+                        <i class="fa-solid fa-wand-magic-sparkles text-xs mb-1 text-slate-400 peer-checked:text-blue-500"></i>
+                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300 peer-checked:text-blue-500 dark:peer-checked:text-blue-400">Auto</span>
+                    </label>
+                    <label class="cursor-pointer border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 rounded-lg p-2 flex flex-col items-center text-center hover:border-blue-500/50 transition">
+                        <input type="radio" name="orientation" value="TD" class="sr-only peer">
+                        <i class="fa-solid fa-arrows-up-to-line text-xs mb-1 text-slate-400 peer-checked:text-blue-500"></i>
+                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300 peer-checked:text-blue-500 dark:peer-checked:text-blue-400">Vertical (TD)</span>
+                    </label>
+                    <label class="cursor-pointer border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 rounded-lg p-2 flex flex-col items-center text-center hover:border-blue-500/50 transition">
+                        <input type="radio" name="orientation" value="LR" class="sr-only peer">
+                        <i class="fa-solid fa-arrows-left-right text-xs mb-1 text-slate-400 peer-checked:text-blue-500"></i>
+                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300 peer-checked:text-blue-500 dark:peer-checked:text-blue-400">Horizontal (LR)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Primary Action Button -->
+            <button id="generateBtn" onclick="generateFigures()" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-600 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 text-sm transition transform active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>Generate PowerPoint Blueprints</span>
+            </button>
+
+            <!-- Global Actions Container -->
+            <div id="exportActionContainer" class="hidden pt-2 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span class="text-slate-500 dark:text-slate-400">3 Blueprints Ready</span>
+                <div class="flex items-center gap-2">
+                    <button onclick="copyAllMermaidCode()" class="text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 px-2.5 py-1.5 rounded-lg transition font-medium flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i> Copy All Code
+                    </button>
+                    <button onclick="downloadAllPPTX()" class="text-white bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 px-3 py-1.5 rounded-lg transition font-semibold shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-powerpoint"></i> Download Editable PPTX Deck
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Visual Blueprint Output Canvas (7 Cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Empty State -->
+            <div id="emptyState" class="bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-8 text-center flex flex-col items-center justify-center min-h-[420px] transition-colors duration-200">
+                <div class="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 mb-4 shadow-inner">
+                    <i class="fa-solid fa-cubes text-2xl"></i>
+                </div>
+                <h3 class="font-bold text-slate-900 dark:text-white text-lg mb-1">No PowerPoint Figures Generated Yet</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mb-6 leading-relaxed">
+                    Paste your paper abstract, upload manuscript notes, or attach a diagram image to automatically draft 3 custom PowerPoint blueprint layouts.
+                </p>
+                <div class="flex flex-wrap gap-2 justify-center text-xs">
+                    <span class="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60"><i class="fa-solid fa-check text-blue-500 dark:text-blue-400 mr-1.5"></i>Editable Vector PPT Shapes</span>
+                    <span class="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60"><i class="fa-solid fa-check text-emerald-500 dark:text-emerald-400 mr-1.5"></i>Export SVG / PNG</span>
+                    <span class="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60"><i class="fa-solid fa-check text-indigo-500 dark:text-indigo-400 mr-1.5"></i>Live Notes Rephrasing</span>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="hidden bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center flex flex-col items-center justify-center min-h-[420px] shadow-xl">
+                <div class="relative w-16 h-16 mb-6">
+                    <div class="absolute inset-0 rounded-full border-4 border-blue-500/20 animate-ping"></div>
+                    <div class="absolute inset-0 rounded-full border-4 border-t-blue-500 border-r-indigo-500 border-b-transparent border-l-transparent animate-spin"></div>
+                    <div class="absolute inset-0 flex items-center justify-center text-blue-500 dark:text-blue-400">
+                        <i class="fa-solid fa-microchip text-xl"></i>
+                    </div>
+                </div>
+                <h3 class="font-bold text-slate-900 dark:text-white text-base mb-2">Generating Scientific Presentation Blueprints</h3>
+                <p id="loadingText" class="text-xs font-medium text-blue-600 dark:text-blue-400 h-5 transition-all">Analyzing conceptual architecture & relationships...</p>
+                <div class="w-48 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full mt-6 overflow-hidden">
+                    <div class="bg-blue-500 h-full rounded-full animate-pulse w-3/4"></div>
+                </div>
+            </div>
+
+            <!-- Dynamic Results Container -->
+            <div id="resultsContainer" class="hidden flex flex-col gap-6"></div>
+
+        </section>
+    </main>
+
+    <!-- API Key Configuration Modal -->
+    <div id="apiKeyModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+            <button onclick="closeApiKeyModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-key"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 dark:text-white text-base">Gemini API Key Settings</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Provide an optional custom API Key for generation</p>
+                </div>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-300 mb-3 leading-relaxed">
+                If left blank, the app will use the system runtime key automatically. Enter a custom key if you prefer to use your personal Google AI Studio quota.
+            </p>
+            <input type="password" id="apiKeyModalInput" placeholder="AIzaSy..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-3 text-xs text-slate-900 dark:text-slate-200 focus:outline-none focus:border-blue-500 mb-4">
+            <div class="flex items-center justify-end space-x-2">
+                <button onclick="clearApiKey()" class="px-3 py-2 text-xs font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition">Clear Key</button>
+                <button onclick="saveApiKey()" class="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow transition">Save & Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Message Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center px-4 py-3 rounded-xl shadow-2xl border text-xs font-medium transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none">
+        <i id="toastIcon" class="mr-2 text-base"></i>
+        <span id="toastMsg">Notification message</span>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        let currentActiveTab = 'text';
+        let uploadedImageBase64 = null;
+        let uploadedImageMimeType = null;
+        let lastGeneratedFigures = [];
+        let currentTheme = localStorage.getItem('app_theme') || 'dark';
+
+        window.onload = function() {
+            initTheme();
+            checkStoredApiKey();
+            mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
+        };
+
+        function initTheme() {
+            if (currentTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            updateThemeUI();
+        }
+
+        function toggleTheme() {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('app_theme', currentTheme);
+            if (currentTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            updateThemeUI();
+        }
+
+        function updateThemeUI() {
+            const icon = document.getElementById('themeToggleIcon');
+            const text = document.getElementById('themeToggleText');
+            if (!icon || !text) return;
+            if (currentTheme === 'dark') {
+                icon.className = 'fa-solid fa-moon text-indigo-400';
+                text.innerText = 'Dark Mode';
+            } else {
+                icon.className = 'fa-solid fa-sun text-amber-500';
+                text.innerText = 'Light Mode';
+            }
+        }
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            toastMsg.innerText = msg;
+            
+            if (type === 'error') {
+                toast.className = 'fixed bottom-5 right-5 z-50 flex items-center px-4 py-3 rounded-xl shadow-2xl border text-xs font-medium bg-red-900/90 dark:bg-red-950 border-red-700 text-red-100 transition-all duration-300 transform translate-y-0 opacity-100';
+                toastIcon.className = 'fa-solid fa-circle-exclamation mr-2 text-red-300 text-base';
+            } else if (type === 'success') {
+                toast.className = 'fixed bottom-5 right-5 z-50 flex items-center px-4 py-3 rounded-xl shadow-2xl border text-xs font-medium bg-emerald-800/90 dark:bg-emerald-950 border-emerald-700 text-emerald-100 transition-all duration-300 transform translate-y-0 opacity-100';
+                toastIcon.className = 'fa-solid fa-circle-check mr-2 text-emerald-300 text-base';
+            } else {
+                toast.className = 'fixed bottom-5 right-5 z-50 flex items-center px-4 py-3 rounded-xl shadow-2xl border text-xs font-medium bg-slate-800/90 dark:bg-slate-900 border-slate-700 text-slate-100 transition-all duration-300 transform translate-y-0 opacity-100';
+                toastIcon.className = 'fa-solid fa-circle-info mr-2 text-blue-400 text-base';
+            }
+
+            setTimeout(() => {
+                toast.className = toast.className.replace('translate-y-0 opacity-100', 'translate-y-10 opacity-0 pointer-events-none');
+            }, 3500);
+        }
+
+        function switchTab(tab) {
+            currentActiveTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = 'tab-btn px-3 py-2 text-xs font-medium rounded-lg transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 flex items-center justify-center gap-1.5';
+            });
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+            const activeBtn = document.getElementById(`tab-${tab}`);
+            const activeContent = document.getElementById(`content-${tab}`);
+            
+            if (activeBtn) {
+                activeBtn.className = 'tab-btn px-3 py-2 text-xs font-medium rounded-lg transition bg-blue-600 text-white shadow-sm flex items-center justify-center gap-1.5';
+            }
+            if (activeContent) {
+                activeContent.classList.remove('hidden');
+            }
+        }
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > 10 * 1024 * 1024) {
+                showToast('Image file size exceeds 10MB.', 'error');
+                return;
+            }
+
+            uploadedImageMimeType = file.type || 'image/png';
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const result = evt.target.result;
+                uploadedImageBase64 = result.split(',')[1];
+                document.getElementById('imagePreview').src = result;
+                document.getElementById('uploadPlaceholder').classList.add('hidden');
+                document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                showToast('Diagram image uploaded successfully.', 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeUploadedImage(e) {
+            if (e) e.stopPropagation();
+            uploadedImageBase64 = null;
+            uploadedImageMimeType = null;
+            document.getElementById('imageFileInput').value = '';
+            document.getElementById('imagePreview').src = '';
+            document.getElementById('imagePreviewContainer').classList.add('hidden');
+            document.getElementById('uploadPlaceholder').classList.remove('hidden');
+        }
+
+        async function handleDocUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const fileName = file.name;
+            const ext = fileName.split('.').pop().toLowerCase();
+
+            document.getElementById('docFileName').innerText = fileName;
+
+            try {
+                if (ext === 'docx') {
+                    showToast('Extracting text from Word document...', 'info');
+                    const arrayBuffer = await file.arrayBuffer();
+                    const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                    const extractedText = result.value.trim();
+                    
+                    if (!extractedText) {
+                        showToast('No readable text found in .docx file.', 'error');
+                        return;
+                    }
+                    
+                    document.getElementById('articleInputDoc').value = extractedText;
+                    showToast(`Word file parsed: extracted ${extractedText.length} characters.`, 'success');
+                } else if (ext === 'txt' || ext === 'md') {
+                    const text = await file.text();
+                    document.getElementById('articleInputDoc').value = text.trim();
+                    showToast(`Loaded text from ${fileName}`, 'success');
+                } else {
+                    showToast('Unsupported file format. Please upload a .docx, .txt, or .md file.', 'error');
+                    return;
+                }
+
+                document.getElementById('docUploadPlaceholder').classList.add('hidden');
+                document.getElementById('docFileInfo').classList.remove('hidden');
+            } catch (err) {
+                console.error("Doc upload error:", err);
+                showToast("Failed to parse document: " + err.message, "error");
+            }
+        }
+
+        function removeUploadedDoc(e) {
+            if (e) e.stopPropagation();
+            document.getElementById('docFileInput').value = '';
+            document.getElementById('articleInputDoc').value = '';
+            document.getElementById('docFileInfo').classList.add('hidden');
+            document.getElementById('docUploadPlaceholder').classList.remove('hidden');
+            showToast('Document cleared.', 'info');
+        }
+
+        function checkStoredApiKey() {
+            const key = localStorage.getItem('gemini_api_key');
+            const btnText = document.getElementById('apiKeyBtnText');
+            if (key && key.trim().length > 0) {
+                btnText.innerText = "Custom API Key Set";
+            } else {
+                btnText.innerText = "API Settings";
+            }
+        }
+
+        function openApiKeyModal() {
+            document.getElementById('apiKeyModalInput').value = localStorage.getItem('gemini_api_key') || "";
+            document.getElementById('apiKeyModal').classList.remove('hidden');
+        }
+
+        function closeApiKeyModal() {
+            document.getElementById('apiKeyModal').classList.add('hidden');
+        }
+
+        function saveApiKey() {
+            const val = document.getElementById('apiKeyModalInput').value.trim();
+            if (val) {
+                localStorage.setItem('gemini_api_key', val);
+                showToast('Custom API Key saved locally.', 'success');
+            } else {
+                localStorage.removeItem('gemini_api_key');
+                showToast('Using default system API key.', 'info');
+            }
+            checkStoredApiKey();
+            closeApiKeyModal();
+        }
+
+        function clearApiKey() {
+            localStorage.removeItem('gemini_api_key');
+            document.getElementById('apiKeyModalInput').value = "";
+            checkStoredApiKey();
+            showToast('API Key cleared.', 'info');
+            closeApiKeyModal();
+        }
+
+        function loadPresetSample() {
+            const sampleText = `CRISPR-Cas9 Gene Editing Mechanism Overview:
+The CRISPR-Cas9 genome editing process begins with the synthesis of a single guide RNA (sgRNA) designed to complement a target DNA sequence adjacent to a Protospacer Adjacent Motif (PAM) site. The Cas9 endonuclease forms a ribonucleoprotein (RNP) complex with sgRNA. Upon recognizing the PAM site, Cas9 unwinds the DNA helix, allowing the guide RNA to hybridize with the target strand. Once fully base-paired, the HNH and RuvC nuclease domains of Cas9 execute double-strand breaks (DSBs) 3-4 base pairs upstream of the PAM site. Repair mechanisms, either Non-Homologous End Joining (NHEJ) resulting in insertions/deletions or Homology-Directed Repair (HDR) using a template donor for precision editing, then resolve the cleavage.`;
+            
+            switchTab('text');
+            document.getElementById('articleInput').value = sampleText;
+            showToast('Sample CRISPR workflow loaded into input.', 'info');
+        }
+
+        async function generateFigures() {
+            let articleText = document.getElementById('articleInput').value.trim();
+            if (currentActiveTab === 'doc') {
+                articleText = document.getElementById('articleInputDoc').value.trim();
+            }
+
+            if (currentActiveTab === 'image' && !uploadedImageBase64) {
+                showToast('Please upload an image file first.', 'error');
+                return;
+            }
+
+            if (currentActiveTab !== 'image' && !articleText) {
+                showToast('Please enter or upload article text first.', 'error');
+                return;
+            }
+
+            let apiKey = localStorage.getItem('gemini_api_key') || "";
+            apiKey = apiKey.trim().replace(/[^\x20-\x7E]/g, '');
+
+            const themeRadio = document.querySelector('input[name="theme"]:checked');
+            const activeTheme = themeRadio ? themeRadio.value : 'default';
+
+            const orientRadio = document.querySelector('input[name="orientation"]:checked');
+            const targetOrientation = orientRadio ? orientRadio.value : 'auto';
+
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('resultsContainer').classList.add('hidden');
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('exportActionContainer').classList.add('hidden');
+            document.getElementById('generateBtn').disabled = true;
+
+            const loadingSteps = [
+                "Analyzing conceptual architecture & relationships...",
+                "Drafting PowerPoint Figure Blueprint layout...",
+                "Mapping in-text citation placement & sentence anchors..."
+            ];
+
+            let stepIdx = 0;
+            const loadingInterval = setInterval(() => {
+                stepIdx = (stepIdx + 1) % loadingSteps.length;
+                document.getElementById('loadingText').innerText = loadingSteps[stepIdx];
+            }, 1200);
+
+            try {
+                const systemPrompt = `You are an expert scientific presentation designer and publication editor specializing in PowerPoint Figure Blueprint Diagrams and manuscript citation formatting. Your task is to analyze the provided article or image and create 3 detailed, publication-quality PowerPoint Figure Blueprints.
+                
+For EACH figure blueprint, you MUST also recommend where to cite/call out the figure in the article text (including the context sentence, the exact word/phrase after which to place the citation like "(Figure 1)", and an explanation of why that location is ideal).
+
+Return valid JSON matching this exact structure:
+{
+  "figures": [
+    {
+      "figureNumber": "Figure 1",
+      "title": "Comprehensive Architectural Schematic",
+      "layoutType": "flowchart",
+      "mermaidCode": "graph TD;\\n  A[\"Input Data\"] --> B[\"Processing Layer\"];\\n  B --> C[\"Output Results\"];",
+      "blueprintDescription": "Detailed structural breakdown explaining how this diagram visually communicates the core mechanism for PowerPoint slides.",
+      "citationPlacement": {
+        "targetSentence": "Upon recognizing the PAM site, Cas9 unwinds the DNA helix...",
+        "afterWord": "hybridize with the target strand",
+        "suggestedCallout": "(Figure 1)",
+        "explanation": "Place immediately following the guide RNA hybridization sentence to anchor the molecular recognition phase."
+      }
+    }
+  ]
+}
+Provide exactly 3 distinct blueprint figures. CRITICAL: Ensure mermaidCode contains ONLY clean standard ASCII mermaid syntax using ${targetOrientation === 'LR' ? 'graph LR' : targetOrientation === 'TD' ? 'graph TD' : 'graph TD or graph LR'}. ALWAYS enclose all node text labels inside double quotes, like A[\"Step 1: Introduction\"] --> B[\"Step 2: Processing\"]. Do NOT include unquoted bracket labels, style tags, color hex codes, unicode symbols, or custom inline styling that could break the Mermaid parser.`;
+
+                let userQuery = `Analyze this article and generate the PowerPoint Figure Blueprints along with in-text citation placement suggestions:\n\n${articleText}`;
+                let userParts = [{ text: userQuery }];
+
+                if (currentActiveTab === 'image' && uploadedImageBase64) {
+                    const extraContext = document.getElementById('imageContextInput').value.trim();
+                    userParts = [
+                        { text: extraContext ? `Analyze this figure with context: ${extraContext}` : "Analyze this figure, generate PowerPoint Figure Blueprints, and suggest in-text citation callout locations." },
+                        {
+                            inlineData: {
+                                mimeType: uploadedImageMimeType || 'image/png',
+                                data: uploadedImageBase64
+                            }
+                        }
+                    ];
+                }
+
+                const payload = {
+                    contents: [{ role: 'user', parts: userParts }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                figures: {
+                                    type: "ARRAY",
+                                    items: {
+                                        type: "OBJECT",
+                                        properties: {
+                                            figureNumber: { type: "STRING" },
+                                            title: { type: "STRING" },
+                                            layoutType: { type: "STRING" },
+                                            mermaidCode: { type: "STRING" },
+                                            blueprintDescription: { type: "STRING" },
+                                            citationPlacement: {
+                                                type: "OBJECT",
+                                                properties: {
+                                                    targetSentence: { type: "STRING" },
+                                                    afterWord: { type: "STRING" },
+                                                    suggestedCallout: { type: "STRING" },
+                                                    explanation: { type: "STRING" }
+                                                },
+                                                required: ["targetSentence", "afterWord", "suggestedCallout", "explanation"]
+                                            }
+                                        },
+                                        required: ["figureNumber", "title", "layoutType", "mermaidCode", "blueprintDescription", "citationPlacement"]
+                                    }
+                                }
+                            },
+                            required: ["figures"]
+                        }
+                    }
+                };
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+                let response;
+                let retries = 3;
+                let delay = 1000;
+                let lastError = null;
+
+                for (let i = 0; i < retries; i++) {
+                    try {
+                        response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+                        if (response.ok) break;
+                        const errBody = await response.json().catch(() => ({}));
+                        lastError = new Error(errBody.error?.message || `API error status ${response.status}`);
+                    } catch (err) {
+                        lastError = err;
+                    }
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2;
+                }
+
+                if (!response || !response.ok) {
+                    throw lastError || new Error("Failed to communicate with Gemini API.");
+                }
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (!candidate || !candidate.content?.parts?.[0]?.text) {
+                    throw new Error("Invalid response received from model.");
+                }
+
+                const parsedData = JSON.parse(candidate.content.parts[0].text);
+                lastGeneratedFigures = parsedData.figures || [];
+                
+                // Aggressive sanitization & auto-quoting to guarantee valid Mermaid syntax and enforce requested orientation
+                lastGeneratedFigures.forEach(fig => {
+                    fig.mermaidCode = sanitizeMermaidCode(fig.mermaidCode, targetOrientation);
+                });
+
+                await renderFigures(lastGeneratedFigures, activeTheme);
+                document.getElementById('exportActionContainer').classList.remove('hidden');
+                showToast("Generated 3 PowerPoint figure blueprints!", "success");
+
+            } catch (error) {
+                console.error("Error generating figures:", error);
+                showToast("Generation failed: " + error.message, "error");
+            } finally {
+                clearInterval(loadingInterval);
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('generateBtn').disabled = false;
+                if (!lastGeneratedFigures || lastGeneratedFigures.length === 0) {
+                    document.getElementById('emptyState').classList.remove('hidden');
+                }
+            }
+        }
+
+        function sanitizeMermaidCode(code, forcedOrientation = 'auto') {
+            if (!code) return forcedOrientation === 'LR' ? 'graph LR;\n  A["Start"] --> B["End"];' : 'graph TD;\n  A["Start"] --> B["End"];';
+
+            let lines = code.split('\n');
+            let cleanLines = [];
+
+            for (let line of lines) {
+                let trimmed = line.trim();
+                if (!trimmed) continue;
+                if (trimmed.startsWith('%%') || trimmed.startsWith('classDef') || trimmed.startsWith('click') || trimmed.startsWith('style ')) {
+                    continue;
+                }
+                trimmed = trimmed.replace(/style\s+[^\n]+/gi, '');
+                trimmed = trimmed.replace(/fill:[^,\s}]+/gi, '');
+                trimmed = trimmed.replace(/stroke:[^,\s}]+/gi, '');
+                trimmed = trimmed.replace(/[^\x00-\x7F]/g, "");
+
+                if (trimmed.length > 0) {
+                    cleanLines.push(trimmed);
+                }
+            }
+
+            let cleanCode = cleanLines.join('\n');
+
+            if (forcedOrientation === 'TD') {
+                if (/^\s*(graph|flowchart)\s+(TD|TB|LR|RL)/i.test(cleanCode)) {
+                    cleanCode = cleanCode.replace(/^\s*(graph|flowchart)\s+(TD|TB|LR|RL)/i, '$1 TD');
+                } else {
+                    cleanCode = "graph TD;\n" + cleanCode;
+                }
+            } else if (forcedOrientation === 'LR') {
+                if (/^\s*(graph|flowchart)\s+(TD|TB|LR|RL)/i.test(cleanCode)) {
+                    cleanCode = cleanCode.replace(/^\s*(graph|flowchart)\s+(TD|TB|LR|RL)/i, '$1 LR');
+                } else {
+                    cleanCode = "graph LR;\n" + cleanCode;
+                }
+            } else {
+                if (!/^\s*(graph|flowchart)\s+(TD|TB|LR|RL)/i.test(cleanCode)) {
+                    cleanCode = "graph TD;\n" + cleanCode;
+                }
+            }
+
+            // Wrap unquoted node labels in double quotes to prevent syntax errors with numbers/colons/spaces
+            cleanCode = cleanCode.replace(/([A-Za-z0-9_-]+)\[([^\n"\]]+)\]/g, (match, id, label) => {
+                const safeLabel = label.replace(/"/g, "'").trim();
+                return `${id}["${safeLabel}"]`;
+            });
+
+            cleanCode = cleanCode.replace(/([A-Za-z0-9_-]+)\(([^\n"\)]+)\)/g, (match, id, label) => {
+                const safeLabel = label.replace(/"/g, "'").trim();
+                return `${id}("${safeLabel}")`;
+            });
+
+            cleanCode = cleanCode.replace(/([A-Za-z0-9_-]+)\{([^\n"\}]+)\}/g, (match, id, label) => {
+                const safeLabel = label.replace(/"/g, "'").trim();
+                return `${id}{"${safeLabel}"}`;
+            });
+
+            return cleanCode;
+        }
+
+        async function rephraseArticleText() {
+            let activeText = document.getElementById('articleInput').value.trim();
+            if (currentActiveTab === 'doc') {
+                activeText = document.getElementById('articleInputDoc').value.trim();
+            }
+
+            if (!activeText) {
+                showToast('Please enter or paste some text first to re-phrase.', 'error');
+                return;
+            }
+
+            let apiKey = localStorage.getItem('gemini_api_key') || "";
+            apiKey = apiKey.trim().replace(/[^\x20-\x7E]/g, '');
+
+            const btnText = document.getElementById('rephraseBtnText');
+            if (btnText) btnText.innerText = "Re-phrasing...";
+
+            try {
+                const systemPrompt = `You are an expert scientific editor and technical writer. Re-phrase and improve the clarity, academic tone, and flow of the provided text while keeping all core facts, technical architectures, and mechanisms accurate. Provide a clean, structured, and polished version suitable for presentation blueprint generation.`;
+                
+                const payload = {
+                    contents: [{ role: 'user', parts: [{ text: `Re-phrase this text for better presentation clarity:\n\n${activeText}` }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] }
+                };
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+                let response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error?.message || `API Error: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    const rephrased = candidate.content.parts[0].text;
+                    document.getElementById('articleInput').value = rephrased;
+                    if (currentActiveTab === 'doc') {
+                        document.getElementById('articleInputDoc').value = rephrased;
+                    }
+                    showToast('Text successfully re-phrased and polished!', 'success');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Error re-phrasing text: " + err.message, 'error');
+            } finally {
+                if (btnText) btnText.innerText = "Re-phrase & Polish";
+            }
+        }
+
+        async function rephraseBlueprint(index) {
+            let apiKey = localStorage.getItem('gemini_api_key') || "";
+            apiKey = apiKey.trim().replace(/[^\x20-\x7E]/g, '');
+
+            if (!lastGeneratedFigures || !lastGeneratedFigures[index]) return;
+
+            const card = document.querySelectorAll('#resultsContainer > .blueprint-card')[index];
+            if (!card) return;
+            const descElem = card.querySelector('.blueprint-desc-text');
+            if (!descElem) return;
+
+            const originalDesc = descElem.innerText;
+            descElem.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2 text-blue-500 dark:text-blue-400"></i> Re-phrasing blueprint notes...`;
+
+            try {
+                const systemPrompt = `You are an expert presentation designer. Rewrite and re-phrase the following PowerPoint figure description to be punchier, clearer, and more impactful for presentation slides. Keep it concise.`;
+                
+                const payload = {
+                    contents: [{ role: 'user', parts: [{ text: originalDesc }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] }
+                };
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+                let response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error?.message || `API Error: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    const newDesc = candidate.content.parts[0].text.trim();
+                    lastGeneratedFigures[index].blueprintDescription = newDesc;
+                    descElem.innerText = newDesc;
+                    showToast(`Blueprint ${index + 1} notes rephrased!`, 'success');
+                } else {
+                    descElem.innerText = originalDesc;
+                }
+            } catch (err) {
+                console.error(err);
+                descElem.innerText = originalDesc;
+                showToast("Failed to rephrase description: " + err.message, 'error');
+            }
+        }
+
+        async function renderFigures(figures, theme) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+
+            try {
+                mermaid.initialize({ startOnLoad: false, theme: theme || 'default', securityLevel: 'loose' });
+            } catch (e) {
+                console.warn("Mermaid re-init error:", e);
+            }
+
+            for (let i = 0; i < figures.length; i++) {
+                const fig = figures[i];
+                const card = document.createElement('div');
+                card.className = 'blueprint-card bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-4 relative overflow-hidden transition-colors duration-200';
+
+                const citation = fig.citationPlacement || {};
+                const isHorizontal = /LR|RL/i.test(fig.mermaidCode || '');
+
+                const cardHtml = `
+                    <!-- Card Header -->
+                    <div class="flex items-start justify-between border-b border-slate-200 dark:border-slate-800/80 pb-3">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-bold text-xs">
+                                ${escapeHtml(fig.figureNumber || `Figure ${i + 1}`)}
+                            </span>
+                            <div>
+                                <h4 class="font-bold text-slate-900 dark:text-white text-sm leading-snug">${escapeHtml(fig.title || 'Untitled Schematic')}</h4>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider">Layout: ${escapeHtml(fig.layoutType || 'Flowchart')}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="toggleDiagramOrientation(${i})" class="text-xs text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-800 transition flex items-center gap-1" title="Switch Orientation">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                                <span id="orient-label-${i}">${isHorizontal ? 'Make Vertical' : 'Make Horizontal'}</span>
+                            </button>
+                            <button onclick="toggleCodeEditor(${i})" class="text-xs text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-800 transition flex items-center gap-1">
+                                <i class="fa-solid fa-code"></i> Code
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Diagram Render Target -->
+                    <div class="bg-slate-100/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800/80 rounded-xl p-4 min-h-[180px] flex items-center justify-center overflow-x-auto custom-scrollbar mermaid-container" id="mermaid-render-${i}">
+                        <div class="text-slate-500 text-xs flex items-center gap-2"><i class="fa-solid fa-spinner fa-spin"></i> Rendering diagram...</div>
+                    </div>
+
+                    <!-- Expandable Live Code Editor -->
+                    <div id="code-editor-box-${i}" class="hidden flex flex-col gap-2 pt-1 border-t border-slate-200 dark:border-slate-800/60">
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                            <span>Edit Standard ASCII Mermaid Code:</span>
+                            <button onclick="updateMermaidDiagram(${i})" class="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-medium flex items-center gap-1">
+                                <i class="fa-solid fa-arrows-rotate"></i> Re-render Diagram
+                            </button>
+                        </div>
+                        <textarea id="mermaid-input-${i}" rows="4" class="w-full font-mono bg-slate-900 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg p-2.5 text-xs text-emerald-400 focus:outline-none focus:border-blue-500 custom-scrollbar resize-y">${escapeHtml(fig.mermaidCode)}</textarea>
+                    </div>
+
+                    <!-- Suggested In-Text Citation Placement Box -->
+                    <div class="bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 rounded-xl p-3.5 flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-quote-right"></i> Suggested In-Text Citation Placement
+                            </span>
+                            <button onclick="copyCitationCallout(${i})" class="text-[11px] text-amber-700 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 font-medium transition flex items-center gap-1">
+                                <i class="fa-regular fa-copy"></i> Copy Callout
+                            </button>
+                        </div>
+                        <div class="text-xs space-y-1.5">
+                            <p class="font-mono text-[11px] bg-white/70 dark:bg-slate-950/70 p-2 rounded-lg border border-amber-200/60 dark:border-amber-900/40 text-slate-800 dark:text-slate-200">
+                                <span class="text-slate-500 dark:text-slate-400 font-sans">Insert after phrase:</span> 
+                                <strong class="text-amber-900 dark:text-amber-200">"${escapeHtml(citation.afterWord || 'target section')}"</strong> 
+                                <span class="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold border border-blue-500/20 ml-1">${escapeHtml(citation.suggestedCallout || `(${fig.figureNumber})`)}</span>
+                            </p>
+                            ${citation.targetSentence ? `
+                            <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                                <span class="font-semibold text-slate-700 dark:text-slate-300">Context sentence:</span> "${escapeHtml(citation.targetSentence)}"
+                            </p>` : ''}
+                            ${citation.explanation ? `
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 italic">
+                                <i class="fa-solid fa-circle-info mr-1 text-amber-500/80"></i>${escapeHtml(citation.explanation)}
+                            </p>` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Blueprint Presentation Strategy Notes -->
+                    <div class="bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/80 dark:border-indigo-900/40 rounded-xl p-3.5 flex flex-col gap-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-chalkboard-user"></i> Slide Blueprint Notes
+                            </span>
+                            <button onclick="rephraseBlueprint(${i})" class="text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 transition flex items-center gap-1">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Rephrase
+                            </button>
+                        </div>
+                        <p class="blueprint-desc-text text-xs text-slate-700 dark:text-slate-300 leading-relaxed">${escapeHtml(fig.blueprintDescription || '')}</p>
+                    </div>
+
+                    <!-- Action Export Buttons -->
+                    <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
+                        <button onclick="copySingleMermaid(${i})" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium transition flex items-center gap-1.5">
+                            <i class="fa-regular fa-copy"></i> Code
+                        </button>
+                        <button onclick="downloadDiagramSVG(${i})" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-download"></i> SVG
+                        </button>
+                        <button onclick="downloadDiagramPNG(${i})" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-image"></i> PNG
+                        </button>
+                        <button onclick="downloadDiagramPPTX(${i})" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-powerpoint"></i> Editable PPTX Slide
+                        </button>
+                    </div>
+                `;
+
+                card.innerHTML = cardHtml;
+                container.appendChild(card);
+
+                // Asynchronously render Mermaid diagram with auto-retry
+                const renderDiv = document.getElementById(`mermaid-render-${i}`);
+                try {
+                    const uniqueId = `mermaid-svg-${i}-${Date.now()}`;
+                    const { svg } = await mermaid.render(uniqueId, fig.mermaidCode);
+                    renderDiv.innerHTML = svg;
+                } catch (err) {
+                    console.warn("Primary Mermaid Render Error for card " + i, err);
+                    
+                    // Retry with strict sanitized code
+                    try {
+                        const safeCode = sanitizeMermaidCode(fig.mermaidCode);
+                        fig.mermaidCode = safeCode;
+                        const retryId = `mermaid-svg-retry-${i}-${Date.now()}`;
+                        const { svg } = await mermaid.render(retryId, safeCode);
+                        renderDiv.innerHTML = svg;
+                        const codeInput = document.getElementById(`mermaid-input-${i}`);
+                        if (codeInput) codeInput.value = safeCode;
+                    } catch (retryErr) {
+                        console.error("Secondary Mermaid Render Error for card " + i, retryErr);
+                        renderDiv.innerHTML = `
+                            <div class="text-amber-600 dark:text-amber-400 text-xs p-3 text-center flex flex-col items-center gap-2">
+                                <div><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Syntax error parsing diagram nodes.</div>
+                                <button onclick="autoFixAndRender(${i})" class="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-700 dark:text-amber-300 border border-amber-500/40 rounded-lg text-[11px] font-medium transition">
+                                    <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Auto-Fix Quotes & Syntax
+                                </button>
+                            </div>`;
+                    }
+                }
+            }
+
+            container.classList.remove('hidden');
+        }
+
+        function toggleCodeEditor(index) {
+            const box = document.getElementById(`code-editor-box-${index}`);
+            if (box) box.classList.toggle('hidden');
+        }
+
+        function toggleDiagramOrientation(index) {
+            if (!lastGeneratedFigures || !lastGeneratedFigures[index]) return;
+            let code = lastGeneratedFigures[index].mermaidCode || '';
+            let newOrient = 'TD';
+
+            if (/graph\s+TD|graph\s+TB|flowchart\s+TD|flowchart\s+TB/i.test(code)) {
+                code = code.replace(/(graph|flowchart)\s+(TD|TB)/i, '$1 LR');
+                newOrient = 'LR';
+            } else if (/graph\s+LR|graph\s+RL|flowchart\s+LR|flowchart\s+RL/i.test(code)) {
+                code = code.replace(/(graph|flowchart)\s+(LR|RL)/i, '$1 TD');
+                newOrient = 'TD';
+            } else {
+                code = code.replace(/(graph|flowchart)/i, '$1 LR');
+                newOrient = 'LR';
+            }
+
+            lastGeneratedFigures[index].mermaidCode = code;
+            const input = document.getElementById(`mermaid-input-${index}`);
+            if (input) input.value = code;
+
+            const orientLabel = document.getElementById(`orient-label-${index}`);
+            if (orientLabel) {
+                orientLabel.innerText = newOrient === 'LR' ? 'Make Vertical' : 'Make Horizontal';
+            }
+
+            updateMermaidDiagram(index);
+        }
+
+        async function updateMermaidDiagram(index) {
+            const codeInput = document.getElementById(`mermaid-input-${index}`);
+            if (!codeInput) return;
+            const newCode = sanitizeMermaidCode(codeInput.value);
+            lastGeneratedFigures[index].mermaidCode = newCode;
+            codeInput.value = newCode;
+
+            const renderDiv = document.getElementById(`mermaid-render-${index}`);
+            renderDiv.innerHTML = `<div class="text-slate-500 text-xs flex items-center gap-2"><i class="fa-solid fa-spinner fa-spin"></i> Re-rendering...</div>`;
+
+            try {
+                const uniqueId = `mermaid-svg-update-${index}-${Date.now()}`;
+                const { svg } = await mermaid.render(uniqueId, newCode);
+                renderDiv.innerHTML = svg;
+                showToast(`Figure ${index + 1} updated!`, 'success');
+            } catch (err) {
+                console.error("Re-render error:", err);
+                renderDiv.innerHTML = `
+                    <div class="text-red-500 dark:text-red-400 text-xs p-3 text-center flex flex-col items-center gap-2">
+                        <div><i class="fa-solid fa-circle-xmark mr-1.5"></i> Mermaid Syntax Error.</div>
+                        <button onclick="autoFixAndRender(${index})" class="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-700 dark:text-red-300 border border-red-500/40 rounded-lg text-[11px] font-medium transition">
+                            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Auto-Fix Quotes
+                        </button>
+                    </div>`;
+                showToast('Mermaid syntax error in code.', 'error');
+            }
+        }
+
+        async function autoFixAndRender(index) {
+            if (!lastGeneratedFigures[index]) return;
+            const codeInput = document.getElementById(`mermaid-input-${index}`);
+            const currentCode = codeInput ? codeInput.value : lastGeneratedFigures[index].mermaidCode;
+            const fixedCode = sanitizeMermaidCode(currentCode);
+            
+            lastGeneratedFigures[index].mermaidCode = fixedCode;
+            if (codeInput) codeInput.value = fixedCode;
+            
+            await updateMermaidDiagram(index);
+        }
+
+        function copySingleMermaid(index) {
+            if (!lastGeneratedFigures[index]) return;
+            const code = lastGeneratedFigures[index].mermaidCode;
+            copyToClipboard(code);
+            showToast(`Mermaid code for Figure ${index + 1} copied!`, 'success');
+        }
+
+        function copyCitationCallout(index) {
+            if (!lastGeneratedFigures || !lastGeneratedFigures[index]) return;
+            const fig = lastGeneratedFigures[index];
+            const callout = fig.citationPlacement?.suggestedCallout || `(${fig.figureNumber})`;
+            copyToClipboard(callout);
+            showToast(`Copied callout "${callout}" to clipboard!`, 'success');
+        }
+
+        function copyAllMermaidCode() {
+            if (!lastGeneratedFigures || lastGeneratedFigures.length === 0) return;
+            const fullText = lastGeneratedFigures.map((f, idx) => `%% --- ${f.figureNumber}: ${f.title} ---\n${f.mermaidCode}`).join('\n\n');
+            copyToClipboard(fullText);
+            showToast('All 3 Mermaid codes copied to clipboard!', 'success');
+        }
+
+        function downloadDiagramSVG(index) {
+            const renderDiv = document.getElementById(`mermaid-render-${index}`);
+            if (!renderDiv) return;
+            const svgElem = renderDiv.querySelector('svg');
+            if (!svgElem) {
+                showToast('SVG element not ready for export.', 'error');
+                return;
+            }
+
+            const svgData = new XMLSerializer().serializeToString(svgElem);
+            const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `PowerPoint_Blueprint_Figure_${index + 1}.svg`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`Downloaded Figure ${index + 1} SVG`, 'success');
+        }
+
+        function downloadDiagramPNG(index) {
+            const renderDiv = document.getElementById(`mermaid-render-${index}`);
+            if (!renderDiv) return;
+            const svgElem = renderDiv.querySelector('svg');
+            if (!svgElem) {
+                showToast('SVG element not ready for PNG export.', 'error');
+                return;
+            }
+
+            try {
+                const svgClone = svgElem.cloneNode(true);
+                svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+                const bbox = svgElem.getBoundingClientRect();
+                const width = Math.max(bbox.width || 800, 400);
+                const height = Math.max(bbox.height || 600, 300);
+
+                svgClone.setAttribute('width', width);
+                svgClone.setAttribute('height', height);
+
+                const svgData = new XMLSerializer().serializeToString(svgClone);
+                const svgBase64 = "data:image/svg+xml;charset=utf-8;base64," + btoa(unescape(encodeURIComponent(svgData)));
+
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+
+                img.onload = function() {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        const scale = 2; // High-DPI export quality
+                        canvas.width = width * scale;
+                        canvas.height = height * scale;
+                        const ctx = canvas.getContext('2d');
+
+                        const isDark = document.documentElement.classList.contains('dark');
+                        ctx.fillStyle = isDark ? '#0f172a' : '#f8fafc';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                        const pngUrl = canvas.toDataURL('image/png');
+                        const a = document.createElement('a');
+                        a.href = pngUrl;
+                        a.download = `PowerPoint_Blueprint_Figure_${index + 1}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        showToast(`Downloaded Figure ${index + 1} PNG`, 'success');
+                    } catch (canvasErr) {
+                        console.warn("Canvas export SecurityError, falling back to SVG:", canvasErr);
+                        showToast('Browser sandbox restriction blocked PNG rasterization. Exporting SVG instead.', 'info');
+                        downloadDiagramSVG(index);
+                    }
+                };
+
+                img.onerror = function() {
+                    showToast('Failed to parse diagram image for PNG. Exporting SVG instead.', 'info');
+                    downloadDiagramSVG(index);
+                };
+
+                img.src = svgBase64;
+            } catch (err) {
+                console.error("PNG export error:", err);
+                showToast('PNG export error. Downloading vector SVG instead.', 'info');
+                downloadDiagramSVG(index);
+            }
+        }
+
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text);
+            } else {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+        }
+
+        function parseColorToHex(colorStr, defaultHex = "3B82F6") {
+            if (!colorStr) return defaultHex;
+            colorStr = colorStr.trim();
+            if (colorStr.startsWith('#')) {
+                let hex = colorStr.replace('#', '');
+                if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+                return hex.toUpperCase();
+            }
+            const match = colorStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+            if (match) {
+                const r = parseInt(match[1]).toString(16).padStart(2, '0');
+                const g = parseInt(match[2]).toString(16).padStart(2, '0');
+                const b = parseInt(match[3]).toString(16).padStart(2, '0');
+                return (r + g + b).toUpperCase();
+            }
+            return defaultHex;
+        }
+
+        async function downloadDiagramPPTX(index) {
+            if (!lastGeneratedFigures || !lastGeneratedFigures[index]) {
+                showToast('No figure data available to export.', 'error');
+                return;
+            }
+
+            try {
+                showToast('Building PowerPoint slide with native editable shapes...', 'info');
+                const fig = lastGeneratedFigures[index];
+                const renderDiv = document.getElementById(`mermaid-render-${index}`);
+                const svgElem = renderDiv ? renderDiv.querySelector('svg') : null;
+
+                const pptx = new PptxGenJS();
+                pptx.layout = 'LAYOUT_16x9';
+                pptx.title = fig.title || `Figure ${index + 1} Blueprint`;
+
+                await addFigureToPptxSlide(pptx, fig, index, svgElem);
+
+                await pptx.writeFile({ fileName: `PowerPoint_Blueprint_Figure_${index + 1}.pptx` });
+                showToast(`Downloaded Figure ${index + 1} Editable PPTX!`, 'success');
+            } catch (err) {
+                console.error("PPTX generation error:", err);
+                showToast("Failed to generate PowerPoint slide: " + err.message, "error");
+            }
+        }
+
+        async function downloadAllPPTX() {
+            if (!lastGeneratedFigures || lastGeneratedFigures.length === 0) {
+                showToast('No generated figures to export.', 'error');
+                return;
+            }
+
+            try {
+                showToast('Building PowerPoint presentation deck with native vector shapes...', 'info');
+                const pptx = new PptxGenJS();
+                pptx.layout = 'LAYOUT_16x9';
+                pptx.title = "PowerPoint Figure Blueprints Presentation";
+
+                for (let i = 0; i < lastGeneratedFigures.length; i++) {
+                    const fig = lastGeneratedFigures[i];
+                    const renderDiv = document.getElementById(`mermaid-render-${i}`);
+                    const svgElem = renderDiv ? renderDiv.querySelector('svg') : null;
+                    await addFigureToPptxSlide(pptx, fig, i, svgElem);
+                }
+
+                await pptx.writeFile({ fileName: `PowerPoint_Figure_Blueprints_Deck.pptx` });
+                showToast('Downloaded full editable PowerPoint deck successfully!', 'success');
+            } catch (err) {
+                console.error("PPTX deck export error:", err);
+                showToast("Failed to generate PowerPoint deck: " + err.message, "error");
+            }
+        }
+
+        function getSvgAsPngDataUrl(svgElem) {
+            return new Promise((resolve) => {
+                try {
+                    const svgClone = svgElem.cloneNode(true);
+                    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+                    const bbox = svgElem.getBoundingClientRect();
+                    const width = Math.max(bbox.width || 800, 400);
+                    const height = Math.max(bbox.height || 600, 300);
+
+                    svgClone.setAttribute('width', width);
+                    svgClone.setAttribute('height', height);
+
+                    const svgData = new XMLSerializer().serializeToString(svgClone);
+                    const svgBase64 = "data:image/svg+xml;charset=utf-8;base64," + btoa(unescape(encodeURIComponent(svgData)));
+
+                    const img = new Image();
+                    img.crossOrigin = "anonymous";
+                    img.onload = function() {
+                        try {
+                            const canvas = document.createElement('canvas');
+                            const scale = 3;
+                            canvas.width = width * scale;
+                            canvas.height = height * scale;
+                            const ctx = canvas.getContext('2d');
+
+                            const isDark = document.documentElement.classList.contains('dark');
+                            ctx.fillStyle = isDark ? '#0f172a' : '#f8fafc';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                            resolve(canvas.toDataURL('image/png'));
+                        } catch (err) {
+                            resolve(svgBase64);
+                        }
+                    };
+                    img.onerror = function() {
+                        resolve(svgBase64);
+                    };
+                    img.src = svgBase64;
+                } catch (e) {
+                    resolve(null);
+                }
+            });
+        }
+
+        async function addFigureToPptxSlide(pptx, fig, index, svgElem) {
+            const slide = pptx.addSlide();
+            const isDark = document.documentElement.classList.contains('dark');
+            slide.background = { color: isDark ? "0F172A" : "F8FAFC" };
+
+            // Figure Badge & Slide Header
+            slide.addText([
+                { text: `${fig.figureNumber || 'Figure ' + (index + 1)}: `, options: { color: "3B82F6", bold: true, fontSize: 18 } },
+                { text: fig.title || 'Scientific Blueprint', options: { color: isDark ? "FFFFFF" : "0F172A", bold: true, fontSize: 18 } }
+            ], { x: 0.8, y: 0.4, w: 11.7, h: 0.5, align: "left" });
+
+            if (fig.layoutType) {
+                slide.addText(`LAYOUT TYPE: ${fig.layoutType.toUpperCase()} (EDITABLE NATIVE SHAPES)`, {
+                    x: 0.8, y: 0.9, w: 11.7, h: 0.25,
+                    fontSize: 9, color: isDark ? "94A3B8" : "64748B", bold: true
+                });
+            }
+
+            // Save Slide Blueprint Strategy & In-Text Citation Context to Presenter Notes
+            let notesText = '';
+            if (fig.blueprintDescription) {
+                notesText += `BLUEPRINT PRESENTATION STRATEGY:\n${fig.blueprintDescription}\n\n`;
+            }
+            if (fig.citationPlacement) {
+                const citation = fig.citationPlacement;
+                notesText += `IN-TEXT CITATION & CONTEXT SENTENCE:\n`;
+                if (citation.targetSentence) {
+                    notesText += `• Context Sentence: "${citation.targetSentence}"\n`;
+                }
+                if (citation.afterWord && citation.suggestedCallout) {
+                    notesText += `• Placement: Insert ${citation.suggestedCallout} after "${citation.afterWord}"\n`;
+                }
+                if (citation.explanation) {
+                    notesText += `• Rationale: ${citation.explanation}\n`;
+                }
+            }
+            if (notesText.trim()) {
+                slide.addNotes(notesText.trim());
+            }
+
+            let nativeShapesCreated = 0;
+
+            // Convert SVG diagram elements into native, ungroupable, editable PowerPoint shapes & text boxes
+            if (svgElem) {
+                try {
+                    const svgRect = svgElem.getBoundingClientRect();
+                    if (svgRect.width > 0 && svgRect.height > 0) {
+                        const maxW = 11.7;
+                        const maxH = 5.2;
+                        let finalW = maxW;
+                        let finalH = (svgRect.height / svgRect.width) * finalW;
+
+                        if (finalH > maxH) {
+                            finalH = maxH;
+                            finalW = (svgRect.width / svgRect.height) * finalH;
+                        }
+
+                        const posX = 0.8 + (maxW - finalW) / 2;
+                        const posY = 1.25 + (maxH - finalH) / 2;
+
+                        const toSlideCoords = (elRect) => {
+                            const relX = (elRect.left - svgRect.left) / svgRect.width;
+                            const relY = (elRect.top - svgRect.top) / svgRect.height;
+                            const relW = elRect.width / svgRect.width;
+                            const relH = elRect.height / svgRect.height;
+
+                            return {
+                                x: posX + relX * finalW,
+                                y: posY + relY * finalH,
+                                w: Math.max(relW * finalW, 0.2),
+                                h: Math.max(relH * finalH, 0.2)
+                            };
+                        };
+
+                        const getScreenPoint = (path, p) => {
+                            try {
+                                const svgPt = svgElem.createSVGPoint();
+                                svgPt.x = p.x;
+                                svgPt.y = p.y;
+                                const ctm = path.getScreenCTM();
+                                if (ctm) {
+                                    return svgPt.matrixTransform(ctm);
+                                }
+                            } catch (e) {}
+                            return null;
+                        };
+
+                        // 1. Convert Nodes to Native Shapes
+                        const nodeElems = svgElem.querySelectorAll('.node, g[id*="flowchart-"]');
+                        nodeElems.forEach(node => {
+                            const elRect = node.getBoundingClientRect();
+                            if (elRect.width === 0 || elRect.height === 0) return;
+
+                            const coords = toSlideCoords(elRect);
+
+                            let shapeType = pptx.ShapeType.roundRect;
+                            const rectElem = node.querySelector('rect');
+                            const circleElem = node.querySelector('circle, ellipse');
+                            const polyElem = node.querySelector('polygon');
+
+                            let fillHex = isDark ? "1E293B" : "FFFFFF";
+                            let strokeHex = "3B82F6";
+                            let textColorHex = isDark ? "FFFFFF" : "0F172A";
+
+                            if (circleElem) {
+                                shapeType = pptx.ShapeType.ellipse;
+                            } else if (polyElem) {
+                                shapeType = pptx.ShapeType.diamond;
+                            } else if (rectElem) {
+                                const rx = rectElem.getAttribute('rx');
+                                if (!rx || parseFloat(rx) === 0) {
+                                    shapeType = pptx.ShapeType.rect;
+                                }
+                            }
+
+                            const targetShapeElem = rectElem || circleElem || polyElem || node;
+                            if (targetShapeElem) {
+                                const compStyle = window.getComputedStyle(targetShapeElem);
+                                if (compStyle.fill && compStyle.fill !== 'none') {
+                                    fillHex = parseColorToHex(compStyle.fill, fillHex);
+                                }
+                                if (compStyle.stroke && compStyle.stroke !== 'none') {
+                                    strokeHex = parseColorToHex(compStyle.stroke, "3B82F6");
+                                }
+                            }
+
+                            slide.addShape(shapeType, {
+                                x: coords.x,
+                                y: coords.y,
+                                w: coords.w,
+                                h: coords.h,
+                                fill: { color: fillHex },
+                                line: { color: strokeHex, width: 1.5 }
+                            });
+
+                            let nodeText = node.innerText || node.textContent || '';
+                            nodeText = nodeText.replace(/\s+/g, ' ').trim();
+
+                            if (nodeText) {
+                                const textElem = node.querySelector('text, foreignObject, span');
+                                if (textElem) {
+                                    const tStyle = window.getComputedStyle(textElem);
+                                    if (tStyle.color) textColorHex = parseColorToHex(tStyle.color, textColorHex);
+                                }
+
+                                const calcFontSize = Math.min(Math.max(Math.round(coords.h * 12), 8), 13);
+
+                                slide.addText(nodeText, {
+                                    x: coords.x,
+                                    y: coords.y,
+                                    w: coords.w,
+                                    h: coords.h,
+                                    align: 'center',
+                                    valign: 'middle',
+                                    color: textColorHex,
+                                    fontSize: calcFontSize,
+                                    bold: true,
+                                    wrap: true
+                                });
+                            }
+
+                            nativeShapesCreated++;
+                        });
+
+                        // 2. Convert Edge Paths to Native Lines/Arrows
+                        const pathElems = svgElem.querySelectorAll('.edgePath path, .edgePaths path, path.path');
+                        pathElems.forEach(path => {
+                            try {
+                                const len = path.getTotalLength();
+                                if (!len || len <= 0) return;
+
+                                const pStart = path.getPointAtLength(0);
+                                const pEnd = path.getPointAtLength(len);
+
+                                const spStart = getScreenPoint(path, pStart);
+                                const spEnd = getScreenPoint(path, pEnd);
+
+                                if (!spStart || !spEnd) return;
+
+                                const relX1 = (spStart.x - svgRect.left) / svgRect.width;
+                                const relY1 = (spStart.y - svgRect.top) / svgRect.height;
+                                const relX2 = (spEnd.x - svgRect.left) / svgRect.width;
+                                const relY2 = (spEnd.y - svgRect.top) / svgRect.height;
+
+                                const x1 = posX + relX1 * finalW;
+                                const y1 = posY + relY1 * finalH;
+                                const x2 = posX + relX2 * finalW;
+                                const y2 = posY + relY2 * finalH;
+
+                                const lineX = Math.min(x1, x2);
+                                const lineY = Math.min(y1, y2);
+                                const lineW = Math.max(Math.abs(x2 - x1), 0.02);
+                                const lineH = Math.max(Math.abs(y2 - y1), 0.02);
+
+                                const flipH = x1 > x2;
+                                const flipV = y1 > y2;
+
+                                let strokeHex = "64748B";
+                                const compStyle = window.getComputedStyle(path);
+                                if (compStyle.stroke && compStyle.stroke !== 'none') {
+                                    strokeHex = parseColorToHex(compStyle.stroke, "64748B");
+                                }
+
+                                slide.addShape(pptx.ShapeType.line, {
+                                    x: lineX,
+                                    y: lineY,
+                                    w: lineW,
+                                    h: lineH,
+                                    line: { color: strokeHex, width: 2, endArrowType: 'triangle' },
+                                    flipH: flipH,
+                                    flipV: flipV
+                                });
+
+                                nativeShapesCreated++;
+                            } catch (e) {
+                                console.warn("Error parsing edge path:", e);
+                            }
+                        });
+
+                        // 3. Convert Edge Labels to Native Text Boxes
+                        const labelElems = svgElem.querySelectorAll('.edgeLabel, .edgeLabels .label');
+                        labelElems.forEach(label => {
+                            const elRect = label.getBoundingClientRect();
+                            let labelText = label.innerText || label.textContent || '';
+                            labelText = labelText.replace(/\s+/g, ' ').trim();
+
+                            if (elRect.width > 0 && elRect.height > 0 && labelText) {
+                                const coords = toSlideCoords(elRect);
+                                slide.addText(labelText, {
+                                    x: coords.x,
+                                    y: coords.y,
+                                    w: Math.max(coords.w, 0.8),
+                                    h: Math.max(coords.h, 0.3),
+                                    align: 'center',
+                                    valign: 'middle',
+                                    color: isDark ? "CBD5E1" : "334155",
+                                    fontSize: 9,
+                                    bold: false
+                                });
+                                nativeShapesCreated++;
+                            }
+                        });
+                    }
+                } catch (err) {
+                    console.warn("SVG to native PowerPoint shapes conversion notice:", err);
+                }
+            }
+
+            // Fallback to high-definition vector image if native shapes couldn't be extracted
+            if (nativeShapesCreated === 0 && svgElem) {
+                try {
+                    const imgDataUrl = await getSvgAsPngDataUrl(svgElem);
+                    if (imgDataUrl) {
+                        const bbox = svgElem.getBoundingClientRect();
+                        const svgW = bbox.width || 800;
+                        const svgH = bbox.height || 600;
+
+                        const maxW = 11.7;
+                        const maxH = 4.8;
+                        let finalW = maxW;
+                        let finalH = (svgH / svgW) * finalW;
+
+                        if (finalH > maxH) {
+                            finalH = maxH;
+                            finalW = (svgW / svgH) * finalH;
+                        }
+
+                        const posX = 0.8 + (maxW - finalW) / 2;
+                        const posY = 1.4 + (maxH - finalH) / 2;
+
+                        slide.addImage({
+                            data: imgDataUrl,
+                            x: posX,
+                            y: posY,
+                            w: finalW,
+                            h: finalH
+                        });
+                    }
+                } catch (e) {
+                    console.warn("Image fallback error:", e);
+                }
+            }
+
+            // Footer attribution
+            slide.addText("Generated via PowerPoint Figure Blueprint Generator | Fully Editable PowerPoint Vector Shapes", {
+                x: 0.8, y: 6.9, w: 11.7, h: 0.3,
+                fontSize: 8, color: "64748B", align: "center"
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>
